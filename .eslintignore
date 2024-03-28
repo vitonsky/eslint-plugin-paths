@@ -1,0 +1,17 @@
+# thirdparty
+node_modules
+
+# temporary exceptions
+/scripts/jest/setupFiles/index.js
+/src/eslint-local-rules.js
+/jest.config.js
+
+# artifacts
+/out
+/dist
+/build
+
+# files
+*.d.ts
+*.html
+*.md
