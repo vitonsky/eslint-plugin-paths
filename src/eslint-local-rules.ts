@@ -1,9 +1,10 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import { Rule } from 'eslint';
+import fs from 'fs';
+import path from 'path';
 
-function findDirWithFile(filename) {
+function findDirWithFile(filename: string) {
 	let dir = path.resolve(filename);
 
 	do {
@@ -11,19 +12,24 @@ function findDirWithFile(filename) {
 	} while (!fs.existsSync(path.join(dir, filename)) && dir !== '/');
 
 	if (!fs.existsSync(path.join(dir, filename))) {
-		return;
+		return null;
 	}
 
 	return dir;
 }
 
-function findAlias(baseDir, importPath, filePath, ignoredPaths = []) {
+function findAlias(
+	baseDir: string,
+	importPath: string,
+	filePath: string,
+	ignoredPaths: string[] = [],
+) {
 	if (fs.existsSync(path.join(baseDir, 'tsconfig.json'))) {
 		const tsconfig = JSON.parse(
 			fs.readFileSync(path.join(baseDir, 'tsconfig.json')).toString('utf8'),
 		);
 
-		const paths = tsconfig?.compilerOptions?.paths ?? {};
+		const paths: Record<string, string[]> = tsconfig?.compilerOptions?.paths ?? {};
 		for (const [alias, aliasPaths] of Object.entries(paths)) {
 			// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
 			const matchedPath = aliasPaths.find((dirPath) => {
@@ -72,55 +78,58 @@ function findAlias(baseDir, importPath, filePath, ignoredPaths = []) {
 
 // TODO: implement option to force relative path instead of alias (for remove alias case)
 // TODO: add tests
-// TODO: move to package
-module.exports = {
-	'proper-import-aliases': {
-		meta: {
-			fixable: true,
-		},
-		create: function (context) {
-			const baseDir = findDirWithFile('package.json');
+const rule: Rule.RuleModule = {
+	meta: {
+		fixable: 'code',
+	},
+	create(context) {
+		const baseDir = findDirWithFile('package.json');
 
-			return {
-				ImportDeclaration(node) {
-					const [{ ignoredPaths = [] } = {}] = context.options;
+		if (!baseDir) throw new Error("Can't find base dir");
+
+		return {
+			ImportDeclaration(node) {
+				const [{ ignoredPaths = [] } = {}] = context.options as [
+					{ ignoredPaths: string[] },
+				];
+
+				const source = node.source.value;
+				if (typeof source === 'string' && source.startsWith('.')) {
+					const filename = context.getFilename();
 
 					const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
 						path.normalize(path.join(path.dirname(filename), ignoredPath)),
 					);
 
-					const source = node.source.value;
-					if (source.startsWith('.')) {
-						const filename = context.getFilename();
+					const absolutePath = path.normalize(
+						path.join(path.dirname(filename), source),
+					);
 
-						const absolutePath = path.normalize(
-							path.join(path.dirname(filename), source),
-						);
+					const replacement = findAlias(
+						baseDir,
+						absolutePath,
+						filename,
+						resolvedIgnoredPaths,
+					);
 
-						const replacement = findAlias(
-							baseDir,
-							absolutePath,
-							filename,
-							resolvedIgnoredPaths,
-						);
+					if (!replacement) return;
 
-						if (!replacement) return;
-
-						context.report({
-							node,
-							message: `Update import to ${replacement}`,
-							fix: function (fixer) {
-								// TODO: preserve quotes
-								const quote = `'`;
-								return fixer.replaceText(
-									node.source,
-									quote + replacement + quote,
-								);
-							},
-						});
-					}
-				},
-			};
-		},
+					context.report({
+						node,
+						message: `Update import to ${replacement}`,
+						fix(fixer) {
+							// TODO: preserve quotes
+							const quote = `'`;
+							return fixer.replaceText(
+								node.source,
+								quote + replacement + quote,
+							);
+						},
+					});
+				}
+			},
+		};
 	},
 };
+
+export default rule;

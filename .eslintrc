@@ -35,7 +35,9 @@
 				"templates": true,
 				"ignoreRequire": true,
 				"lang": "en_US",
-				"skipWords": [],
+				"skipWords": [
+					"tsconfig"
+				],
 				// Check if word contains numbers
 				"skipIfMatch": [
 					"\\d+",
