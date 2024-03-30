@@ -28,7 +28,11 @@
 		"rootDir": ".",
 		"allowJs": true,
 		"resolveJsonModule": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"baseUrl": ".",
+		"paths": {
+			"@bar/*": ["src/bar/*"]
+		}
 	},
 	"include": ["src/*.ts", "src/*.tsx", "src/**/*.ts", "src/**/*.tsx"]
 }
