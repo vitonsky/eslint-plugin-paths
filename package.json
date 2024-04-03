@@ -5,6 +5,7 @@
 		"test": "jest",
 		"test-fast": "TEST_FAST=true jest",
 		"build": "rm -rf dist && rollup -c ./rollup.config.mjs",
+		"release": "npm run build && cd dist && npm publish",
 		"prettify": "prettier --write \"{*,**/*}.{ts,tsx,js,jsx}\" && eslint --fix \"{*,**/*}.{ts,tsx,js,jsx}\"",
 		"packages:upgrade": "npm-check-updates -u",
 		"prepare": "husky install"
