@@ -19,6 +19,11 @@ tester.run('import-paths', rule, {
 			code: `import baz from './baz/index';`,
 		},
 		{
+			name: 'import from alias root',
+			filename: path.resolve('./src/index.ts'),
+			code: `import baz from '@foo';`,
+		},
+		{
 			name: 'alias import from alias directory',
 			filename: path.resolve('./src/foo/index.ts'),
 			code: `import z from '@foo/x/y/z';`,
@@ -41,40 +46,18 @@ tester.run('import-paths', rule, {
 	],
 	invalid: [
 		{
-			options: [{}],
+			name: 'relative import from alias must be fixed',
 			filename: path.resolve('./src/index.ts'),
-			code: `import globalFoo from './foo/index';`,
-			errors: ['Update import to @foo/index'],
-			output: `import globalFoo from '@foo/index';`,
+			code: `import z from './foo/x/y/z';`,
+			errors: ['Update import to @foo/x/y/z'],
+			output: `import z from '@foo/x/y/z';`,
 		},
 		{
-			options: [{}],
+			name: 'relative import from alias used in file under another alias must be fixed',
 			filename: path.resolve('./src/foo/index.ts'),
-			code: `
-			// import globalFoo from '../foo/index';
-			import globalBar from '../bar/index';
-			import bar1 from '../bar/1';
-			// import bar2 from 'bar/1/2';
-			// import bar3 from 'bar/1/2/3';
-
-			// import globalBaz from './baz';
-			// import baz1 from './baz/main';
-			// import baz2 from '../baz/main';
-			// import baz3 from '../../baz/main';
-			`.replace(/\t/g, ''),
-			errors: ['Update import to @bar/index', 'Update import to @bar/1'],
-			output: `
-			// import globalFoo from '../foo/index';
-			import globalBar from '@bar/index';
-			import bar1 from '@bar/1';
-			// import bar2 from 'bar/1/2';
-			// import bar3 from 'bar/1/2/3';
-
-			// import globalBaz from './baz';
-			// import baz1 from './baz/main';
-			// import baz2 from '../baz/main';
-			// import baz3 from '../../baz/main';
-			`.replace(/\t/g, ''),
+			code: `import z from '../bar/x/y/z';`,
+			errors: ['Update import to @bar/x/y/z'],
+			output: `import z from '@bar/x/y/z';`,
 		},
 	],
 });
