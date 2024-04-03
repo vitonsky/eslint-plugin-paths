@@ -1,11 +1,51 @@
-Short one paragraph description, which answer to question "what is this?".
+Eslint plugin to replace a relative imports, according to `paths` options in `tsconfig.json` or `jsconfig.json`.
 
-Detailed description in few paragrapghs about "for what this?" and how it works.
+# Setup
 
-# Features
+Install package with `npm install -D eslint-plugin-paths`, then update eslint config
 
-<!-- TODO: info about key features -->
+```json
+{
+	"plugins": [
+		"paths",
+	],
+	"rules": {
+		"paths/aliases": "error"
+	}
+}
+```
 
-# Usage
+# Examples
 
-<!-- TODO: info about how it use -->
+If you have `tsconfig.json` with config below
+
+```json
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@foo/*": ["src/foo/*"],
+			"@bar/*": ["src/bar/*"]
+		}
+	}
+}
+```
+
+then code below will be valid
+
+```ts
+// src/index.ts
+
+import foo from '@foo';
+import barZ from '@bar/x/y/z';
+import bazZ from './baz/x/y/z';
+```
+
+and this code will be invalid
+
+```ts
+// src/index.ts
+
+import foo from './foo';
+import barZ from './bar/x/y/z';
+```
