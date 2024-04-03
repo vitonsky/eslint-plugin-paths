@@ -25,7 +25,6 @@ function findAlias(
 	ignoredPaths: string[] = [],
 ) {
 	if (fs.existsSync(path.join(baseDir, 'tsconfig.json'))) {
-		console.log({ importPath, filePath, baseDir });
 		const tsconfig = JSON.parse(
 			fs.readFileSync(path.join(baseDir, 'tsconfig.json')).toString('utf8'),
 		);
@@ -112,8 +111,6 @@ const rule: Rule.RuleModule = {
 						filename,
 						resolvedIgnoredPaths,
 					);
-
-					console.log({ replacement, source });
 
 					if (!replacement) return;
 
