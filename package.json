@@ -4,6 +4,7 @@
 	"scripts": {
 		"test": "jest",
 		"test-fast": "TEST_FAST=true jest",
+		"build": "rm -rf dist && rollup -c ./rollup.config.mjs",
 		"prettify": "prettier --write \"{*,**/*}.{ts,tsx,js,jsx}\" && eslint --fix \"{*,**/*}.{ts,tsx,js,jsx}\"",
 		"packages:upgrade": "npm-check-updates -u",
 		"prepare": "husky install"
