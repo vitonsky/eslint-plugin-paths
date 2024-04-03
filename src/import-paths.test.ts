@@ -14,29 +14,38 @@ const tester = new RuleTester({
 tester.run('import-paths', rule, {
 	valid: [
 		{
-			options: [{}],
-			filename: path.resolve('./src/foo.ts'),
-			code: `
-			import globalFoo from '@foo';
-			import globalBar from '@bar';
-			import bar1 from '@bar/1';
-			import bar2 from '@bar/1/2';
-			import bar3 from '@bar/1/2/3';
-
-			import globalBaz from './baz';
-			import baz1 from './baz/main';
-			import baz2 from '../baz/main';
-			import baz3 from '../../baz/main';
-			`.replace(/\t/g, ''),
+			name: 'relative import from not an alias directory',
+			filename: path.resolve('./src/index.ts'),
+			code: `import baz from './baz/index';`,
+		},
+		{
+			name: 'alias import from alias directory',
+			filename: path.resolve('./src/foo/index.ts'),
+			code: `import z from '@foo/x/y/z';`,
+		},
+		{
+			name: 'alias import from another alias directory',
+			filename: path.resolve('./src/foo/index.ts'),
+			code: `import z from '@bar/x/y/z';`,
+		},
+		{
+			name: 'relative import from subdirectory in file under alias directory',
+			filename: path.resolve('./src/foo/index.ts'),
+			code: `import z from './x/y/z';`,
+		},
+		{
+			name: 'relative import up from subdirectory in file under alias directory',
+			filename: path.resolve('./src/foo/x/y/z/index.ts'),
+			code: `import foo from '../../../index';`,
 		},
 	],
 	invalid: [
 		{
 			options: [{}],
-			filename: path.resolve('./src/foo/index.ts'),
-			code: `import bar from '../bar/index';`,
-			errors: ['Update import to @bar/index'],
-			output: `import bar from '@bar/index';`,
+			filename: path.resolve('./src/index.ts'),
+			code: `import globalFoo from './foo/index';`,
+			errors: ['Update import to @foo/index'],
+			output: `import globalFoo from '@foo/index';`,
 		},
 		{
 			options: [{}],
