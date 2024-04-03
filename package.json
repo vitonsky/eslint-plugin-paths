@@ -1,6 +1,6 @@
 {
 	"name": "eslint-plugin-paths",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"scripts": {
 		"test": "jest",
 		"test-fast": "TEST_FAST=true jest",
