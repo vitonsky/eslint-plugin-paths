@@ -14,32 +14,32 @@ const tester = new RuleTester({
 tester.run('import-paths', rule, {
 	valid: [
 		{
-			name: 'relative import from not an alias directory',
+			name: 'relative import from not an alias directory are allowed',
 			filename: path.resolve('./src/index.ts'),
 			code: `import baz from './baz/index';`,
 		},
 		{
-			name: 'import from alias root',
+			name: 'import from an alias root are possible',
 			filename: path.resolve('./src/index.ts'),
 			code: `import baz from '@foo';`,
 		},
 		{
-			name: 'alias import from alias directory',
+			name: 'files in alias directory may import files from the same alias',
 			filename: path.resolve('./src/foo/index.ts'),
 			code: `import z from '@foo/x/y/z';`,
 		},
 		{
-			name: 'alias import from another alias directory',
+			name: 'files in alias directory may import files from another aliases',
 			filename: path.resolve('./src/foo/index.ts'),
 			code: `import z from '@bar/x/y/z';`,
 		},
 		{
-			name: 'relative import from subdirectory in file under alias directory',
+			name: 'relative imports from subdirectory is allowed for files inside alias',
 			filename: path.resolve('./src/foo/index.ts'),
 			code: `import z from './x/y/z';`,
 		},
 		{
-			name: 'relative import up from subdirectory in file under alias directory',
+			name: 'relative imports from subdirectory is allowed for files inside alias (case with escalate directory)',
 			filename: path.resolve('./src/foo/x/y/z/index.ts'),
 			code: `import foo from '../../../index';`,
 		},
@@ -53,7 +53,7 @@ tester.run('import-paths', rule, {
 			output: `import z from '@foo/x/y/z';`,
 		},
 		{
-			name: 'relative import from alias used in file under another alias must be fixed',
+			name: 'relative import from alias used in another alias must be fixed',
 			filename: path.resolve('./src/foo/index.ts'),
 			code: `import z from '../bar/x/y/z';`,
 			errors: ['Update import to @bar/x/y/z'],
