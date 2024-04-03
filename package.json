@@ -1,7 +1,7 @@
 {
 	"name": "eslint-plugin-paths",
 	"description": "A plugin for ESLint, to force use paths aliases from tsconfig",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"license": "Apache-2.0",
 	"keywords": ["eslint", "eslintplugin"],
 	"author": "Robert Vitonsky <rob@vitonsky.net> (https://vitonsky.net)",
