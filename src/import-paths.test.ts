@@ -43,6 +43,11 @@ tester.run('import-paths', rule, {
 			filename: path.resolve('./src/foo/x/y/z/index.ts'),
 			code: `import foo from '../../../index';`,
 		},
+		{
+			name: 'relative imports from subdirectory is allowed for files inside alias (case with out of alias directory)',
+			filename: path.resolve('./src/foo/x/y/z/index.ts'),
+			code: `import foo from '../../../../index';`,
+		},
 	],
 	invalid: [
 		{
