@@ -1,5 +1,5 @@
 {
-	"name": "eslint-import-paths",
+	"name": "eslint-plugin-paths",
 	"version": "0.0.1",
 	"scripts": {
 		"test": "jest",
