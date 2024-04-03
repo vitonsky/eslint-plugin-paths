@@ -21,7 +21,7 @@ on:
 
 jobs:
   tests:
-    name: Tests
+    name: Tests and build
     runs-on: ubuntu-latest
 
     steps:
@@ -35,6 +35,9 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Build code
+        run: npm run build
 
   analyze:
     name: Analyze
