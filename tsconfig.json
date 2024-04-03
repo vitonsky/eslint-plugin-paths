@@ -31,6 +31,7 @@
 		"skipLibCheck": true,
 		"baseUrl": ".",
 		"paths": {
+			"@foo/*": ["src/foo/*"],
 			"@bar/*": ["src/bar/*"]
 		}
 	},
