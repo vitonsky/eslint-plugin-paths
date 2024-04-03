@@ -1,4 +1,6 @@
-Eslint plugin to replace a relative imports, according to `paths` options in `tsconfig.json` or `jsconfig.json`.
+A plugin for ESLint, to force use paths aliases according to `paths` options in `tsconfig.json` or `jsconfig.json`, instead of relative imports.
+
+Zero config, plug and play design.
 
 # Setup
 
