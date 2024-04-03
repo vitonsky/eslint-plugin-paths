@@ -1,7 +1,7 @@
 import { RuleTester } from 'eslint';
 import path from 'path';
 
-import rule from './import-paths';
+import rule from './alias';
 
 const tester = new RuleTester({
 	parserOptions: {
@@ -11,7 +11,7 @@ const tester = new RuleTester({
 	},
 });
 
-tester.run('import-paths', rule, {
+tester.run('paths-alias', rule, {
 	valid: [
 		{
 			name: 'relative import from not an alias directory are allowed',
