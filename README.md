@@ -7,10 +7,10 @@ Install package with `npm install -D eslint-plugin-paths`, then update eslint co
 ```json
 {
 	"plugins": [
-		"paths",
+		"eslint-plugin-paths",
 	],
 	"rules": {
-		"paths/aliases": "error"
+		"paths/alias": "error"
 	}
 }
 ```
