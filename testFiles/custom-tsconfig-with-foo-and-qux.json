@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		// Test comment, that must not break a parsing of config file
+		// See more info in https://github.com/vitonsky/eslint-plugin-paths/issues/37#issuecomment-2052542343
 		"baseUrl": ".",
 		"paths": {
 			"@foo/*": ["src/foo/*"],

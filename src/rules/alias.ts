@@ -26,8 +26,7 @@ function findAlias(
 	filePath: string,
 	ignoredPaths: string[] = [],
 ) {
-	const { paths } = compilerOptions;
-	for (const [alias, aliasPaths] of Object.entries(paths)) {
+	for (const [alias, aliasPaths] of Object.entries(compilerOptions.paths)) {
 		// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
 		const matchedPath = aliasPaths.find((dirPath) => {
 			// Remove last asterisk
