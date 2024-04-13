@@ -24,9 +24,18 @@ function findAlias(
 	filePath: string,
 	ignoredPaths: string[] = [],
 ) {
-	if (fs.existsSync(path.join(baseDir, 'tsconfig.json'))) {
+	const isTsconfigExists = fs.existsSync(path.join(baseDir, 'tsconfig.json'));
+	const isJsconfigExists = fs.existsSync(path.join(baseDir, 'jsconfig.json'));
+
+	const configFile = isTsconfigExists
+		? 'tsconfig.json'
+		: isJsconfigExists
+			? 'jsconfig.json'
+			: null;
+
+	if (configFile) {
 		const tsconfig = JSON.parse(
-			fs.readFileSync(path.join(baseDir, 'tsconfig.json')).toString('utf8'),
+			fs.readFileSync(path.join(baseDir, configFile)).toString('utf8'),
 		);
 
 		const paths: Record<string, string[]> = tsconfig?.compilerOptions?.paths ?? {};

@@ -36,7 +36,8 @@
 				"ignoreRequire": true,
 				"lang": "en_US",
 				"skipWords": [
-					"tsconfig"
+					"tsconfig",
+					"jsconfig"
 				],
 				// Check if word contains numbers
 				"skipIfMatch": [
