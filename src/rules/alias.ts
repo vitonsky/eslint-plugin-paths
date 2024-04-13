@@ -1,9 +1,9 @@
-'use strict';
-
-import { parse as parseJsonWithComments } from 'comment-json';
 import { Rule } from 'eslint';
 import fs from 'fs';
 import path from 'path';
+
+import { CompilerOptions } from '../types';
+import { getCompilerConfigFromFile } from '../utils/getCompilerConfigFromFile';
 
 function findDirWithFile(filename: string) {
 	let dir = path.resolve(filename);
@@ -20,68 +20,48 @@ function findDirWithFile(filename: string) {
 }
 
 function findAlias(
+	compilerOptions: CompilerOptions,
 	baseDir: string,
 	importPath: string,
 	filePath: string,
 	ignoredPaths: string[] = [],
 ) {
-	const isTsconfigExists = fs.existsSync(path.join(baseDir, 'tsconfig.json'));
-	const isJsconfigExists = fs.existsSync(path.join(baseDir, 'jsconfig.json'));
+	for (const [alias, aliasPaths] of Object.entries(compilerOptions.paths)) {
+		// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
+		const matchedPath = aliasPaths.find((dirPath) => {
+			// Remove last asterisk
+			const dirPathBase = path
+				.join(baseDir, dirPath)
+				.split('/')
+				.slice(0, -1)
+				.join('/');
 
-	const configFile = isTsconfigExists
-		? 'tsconfig.json'
-		: isJsconfigExists
-			? 'jsconfig.json'
-			: null;
+			if (filePath.startsWith(dirPathBase)) return false;
+			if (ignoredPaths.some((ignoredPath) => ignoredPath.startsWith(dirPathBase)))
+				return false;
 
-	if (configFile) {
-		const tsconfig = parseJsonWithComments(
-			fs.readFileSync(path.join(baseDir, configFile)).toString('utf8'),
-		);
+			return importPath.startsWith(dirPathBase);
+		});
 
-		const paths: Record<string, string[]> =
-			(tsconfig as any)?.compilerOptions?.paths ?? {};
-		for (const [alias, aliasPaths] of Object.entries(paths)) {
-			// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
-			const matchedPath = aliasPaths.find((dirPath) => {
-				// Remove last asterisk
-				const dirPathBase = path
-					.join(baseDir, dirPath)
-					.split('/')
-					.slice(0, -1)
-					.join('/');
+		if (!matchedPath) continue;
 
-				if (filePath.startsWith(dirPathBase)) return false;
-				if (
-					ignoredPaths.some((ignoredPath) =>
-						ignoredPath.startsWith(dirPathBase),
-					)
-				)
-					return false;
+		// Split import path
+		// Remove basedir and slash in start
+		const slicedImportPath = importPath
+			.slice(baseDir.length + 1)
+			.slice(path.dirname(matchedPath).length + 1);
 
-				return importPath.startsWith(dirPathBase);
-			});
+		// Remove asterisk from end of alias
+		const replacedPathSegments = path
+			.join(path.dirname(alias), slicedImportPath)
+			.split('/');
 
-			if (!matchedPath) continue;
-
-			// Split import path
-			// Remove basedir and slash in start
-			const slicedImportPath = importPath
-				.slice(baseDir.length + 1)
-				.slice(path.dirname(matchedPath).length + 1);
-
-			// Remove asterisk from end of alias
-			const replacedPathSegments = path
-				.join(path.dirname(alias), slicedImportPath)
-				.split('/');
-
-			// Add index in path
-			return (
-				replacedPathSegments.length === 1
-					? [...replacedPathSegments, 'index']
-					: replacedPathSegments
-			).join('/');
-		}
+		// Add index in path
+		return (
+			replacedPathSegments.length === 1
+				? [...replacedPathSegments, 'index']
+				: replacedPathSegments
+		).join('/');
 	}
 
 	return null;
@@ -95,17 +75,22 @@ const rule: Rule.RuleModule = {
 	},
 	create(context) {
 		const baseDir = findDirWithFile('package.json');
-
 		if (!baseDir) throw new Error("Can't find base dir");
+
+		const [{ ignoredPaths = [], configFilePath = null } = {}] = context.options as [
+			{ ignoredPaths: string[]; configFilePath?: string },
+		];
+
+		const compilerOptions = getCompilerConfigFromFile(
+			baseDir,
+			configFilePath ?? undefined,
+		);
+		if (!compilerOptions) throw new Error('Compiler options did not found');
 
 		return {
 			ImportDeclaration(node) {
-				const [{ ignoredPaths = [] } = {}] = context.options as [
-					{ ignoredPaths: string[] },
-				];
-
-				const source = node.source.value;
-				if (typeof source === 'string' && source.startsWith('.')) {
+				const importPath = node.source.value;
+				if (typeof importPath === 'string' && importPath.startsWith('.')) {
 					const filename = context.getFilename();
 
 					const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
@@ -113,10 +98,11 @@ const rule: Rule.RuleModule = {
 					);
 
 					const absolutePath = path.normalize(
-						path.join(path.dirname(filename), source),
+						path.join(path.dirname(filename), importPath),
 					);
 
 					const replacement = findAlias(
+						compilerOptions,
 						baseDir,
 						absolutePath,
 						filename,

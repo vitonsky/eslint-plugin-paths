@@ -51,3 +51,11 @@ and this code will be invalid
 import foo from './foo';
 import barZ from './bar/x/y/z';
 ```
+
+# Options
+
+## configFilePath
+
+Provide path to json file with a compiler config.
+
+When not set, used `tsconfig.json` from root directory if exists or `jsconfig.json` if not.

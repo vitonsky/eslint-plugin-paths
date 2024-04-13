@@ -73,3 +73,46 @@ tester.run('paths-alias', rule, {
 		},
 	],
 });
+
+[
+	'testFiles/custom-tsconfig-with-foo-and-qux.json',
+	'./testFiles/custom-tsconfig-with-foo-and-qux.json',
+	path.resolve('testFiles/custom-tsconfig-with-foo-and-qux.json'),
+].forEach((configFilePath) => {
+	const options = [
+		{
+			configFilePath,
+		},
+	];
+
+	tester.run(`paths-alias rule with configFile option "${configFilePath}"`, rule, {
+		valid: [
+			{
+				name: 'relative import from bar are possible, because used another config',
+				filename: path.resolve('./src/index.ts'),
+				options,
+				code: `import bar from './bar/index';`,
+			},
+			{
+				name: 'import from @foo',
+				filename: path.resolve('./src/index.ts'),
+				code: `import foo from '@foo';`,
+			},
+			{
+				name: 'import from @qux',
+				filename: path.resolve('./src/index.ts'),
+				code: `import qux from '@qux';`,
+			},
+		],
+		invalid: [
+			{
+				name: 'relative import from alias must be fixed',
+				filename: path.resolve('./src/index.ts'),
+				options,
+				code: `import z from './foo/x/y/z';`,
+				output: `import z from '@foo/x/y/z';`,
+				errors: ['Update import to @foo/x/y/z'],
+			},
+		],
+	});
+});
