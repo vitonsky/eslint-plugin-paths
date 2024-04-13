@@ -29,6 +29,7 @@
 		"allowJs": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
+		// Test comment, that must not break a parsing of config file
 		"baseUrl": ".",
 		"paths": {
 			"@foo/*": ["src/foo/*"],
