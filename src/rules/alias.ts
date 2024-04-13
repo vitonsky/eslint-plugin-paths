@@ -129,8 +129,14 @@ const rule: Rule.RuleModule = {
 						node,
 						message: `Update import to ${replacement}`,
 						fix(fixer) {
-							// TODO: preserve quotes
-							const quote = `'`;
+							const acceptableQuoteSymbols = [`'`, `"`];
+							const originalStringQuote = node.source.raw?.slice(0, 1);
+							const quote =
+								originalStringQuote &&
+								acceptableQuoteSymbols.includes(originalStringQuote)
+									? originalStringQuote
+									: acceptableQuoteSymbols[0];
+
 							return fixer.replaceText(
 								node.source,
 								quote + replacement + quote,
