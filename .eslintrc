@@ -37,7 +37,8 @@
 				"lang": "en_US",
 				"skipWords": [
 					"tsconfig",
-					"jsconfig"
+					"jsconfig",
+					"qux"
 				],
 				// Check if word contains numbers
 				"skipIfMatch": [

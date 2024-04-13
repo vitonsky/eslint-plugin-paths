@@ -24,64 +24,67 @@ function findAlias(
 	importPath: string,
 	filePath: string,
 	ignoredPaths: string[] = [],
+	configFilePath: string | null,
 ) {
-	const isTsconfigExists = fs.existsSync(path.join(baseDir, 'tsconfig.json'));
-	const isJsconfigExists = fs.existsSync(path.join(baseDir, 'jsconfig.json'));
+	if (!configFilePath) {
+		const isTsconfigExists = fs.existsSync(path.join(baseDir, 'tsconfig.json'));
+		const isJsconfigExists = fs.existsSync(path.join(baseDir, 'jsconfig.json'));
 
-	const configFile = isTsconfigExists
-		? 'tsconfig.json'
-		: isJsconfigExists
-			? 'jsconfig.json'
-			: null;
+		const configFileName = isTsconfigExists
+			? 'tsconfig.json'
+			: isJsconfigExists
+				? 'jsconfig.json'
+				: null;
 
-	if (configFile) {
-		const tsconfig = parseJsonWithComments(
-			fs.readFileSync(path.join(baseDir, configFile)).toString('utf8'),
-		);
+		if (!configFileName) return null;
 
-		const paths: Record<string, string[]> =
-			(tsconfig as any)?.compilerOptions?.paths ?? {};
-		for (const [alias, aliasPaths] of Object.entries(paths)) {
-			// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
-			const matchedPath = aliasPaths.find((dirPath) => {
-				// Remove last asterisk
-				const dirPathBase = path
-					.join(baseDir, dirPath)
-					.split('/')
-					.slice(0, -1)
-					.join('/');
+		configFilePath = path.resolve(path.join(baseDir, configFileName));
+	} else {
+		configFilePath = path.resolve(configFilePath);
+	}
 
-				if (filePath.startsWith(dirPathBase)) return false;
-				if (
-					ignoredPaths.some((ignoredPath) =>
-						ignoredPath.startsWith(dirPathBase),
-					)
-				)
-					return false;
+	const tsconfig = parseJsonWithComments(
+		fs.readFileSync(configFilePath).toString('utf8'),
+	);
 
-				return importPath.startsWith(dirPathBase);
-			});
+	const paths: Record<string, string[]> =
+		(tsconfig as any)?.compilerOptions?.paths ?? {};
+	for (const [alias, aliasPaths] of Object.entries(paths)) {
+		// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
+		const matchedPath = aliasPaths.find((dirPath) => {
+			// Remove last asterisk
+			const dirPathBase = path
+				.join(baseDir, dirPath)
+				.split('/')
+				.slice(0, -1)
+				.join('/');
 
-			if (!matchedPath) continue;
+			if (filePath.startsWith(dirPathBase)) return false;
+			if (ignoredPaths.some((ignoredPath) => ignoredPath.startsWith(dirPathBase)))
+				return false;
 
-			// Split import path
-			// Remove basedir and slash in start
-			const slicedImportPath = importPath
-				.slice(baseDir.length + 1)
-				.slice(path.dirname(matchedPath).length + 1);
+			return importPath.startsWith(dirPathBase);
+		});
 
-			// Remove asterisk from end of alias
-			const replacedPathSegments = path
-				.join(path.dirname(alias), slicedImportPath)
-				.split('/');
+		if (!matchedPath) continue;
 
-			// Add index in path
-			return (
-				replacedPathSegments.length === 1
-					? [...replacedPathSegments, 'index']
-					: replacedPathSegments
-			).join('/');
-		}
+		// Split import path
+		// Remove basedir and slash in start
+		const slicedImportPath = importPath
+			.slice(baseDir.length + 1)
+			.slice(path.dirname(matchedPath).length + 1);
+
+		// Remove asterisk from end of alias
+		const replacedPathSegments = path
+			.join(path.dirname(alias), slicedImportPath)
+			.split('/');
+
+		// Add index in path
+		return (
+			replacedPathSegments.length === 1
+				? [...replacedPathSegments, 'index']
+				: replacedPathSegments
+		).join('/');
 	}
 
 	return null;
@@ -100,9 +103,10 @@ const rule: Rule.RuleModule = {
 
 		return {
 			ImportDeclaration(node) {
-				const [{ ignoredPaths = [] } = {}] = context.options as [
-					{ ignoredPaths: string[] },
-				];
+				const [{ ignoredPaths = [], configFilePath = null } = {}] =
+					context.options as [
+						{ ignoredPaths: string[]; configFilePath?: string },
+					];
 
 				const source = node.source.value;
 				if (typeof source === 'string' && source.startsWith('.')) {
@@ -121,6 +125,7 @@ const rule: Rule.RuleModule = {
 						absolutePath,
 						filename,
 						resolvedIgnoredPaths,
+						configFilePath,
 					);
 
 					if (!replacement) return;
