@@ -1,9 +1,9 @@
-'use strict';
-
-import { parse as parseJsonWithComments } from 'comment-json';
 import { Rule } from 'eslint';
 import fs from 'fs';
 import path from 'path';
+
+import { CompilerOptions } from '../types';
+import { getCompilerConfigFromFile } from '../utils/getCompilerConfigFromFile';
 
 function findDirWithFile(filename: string) {
 	let dir = path.resolve(filename);
@@ -20,35 +20,13 @@ function findDirWithFile(filename: string) {
 }
 
 function findAlias(
+	compilerOptions: CompilerOptions,
 	baseDir: string,
 	importPath: string,
 	filePath: string,
 	ignoredPaths: string[] = [],
-	configFilePath: string | null,
 ) {
-	if (!configFilePath) {
-		const isTsconfigExists = fs.existsSync(path.join(baseDir, 'tsconfig.json'));
-		const isJsconfigExists = fs.existsSync(path.join(baseDir, 'jsconfig.json'));
-
-		const configFileName = isTsconfigExists
-			? 'tsconfig.json'
-			: isJsconfigExists
-				? 'jsconfig.json'
-				: null;
-
-		if (!configFileName) return null;
-
-		configFilePath = path.resolve(path.join(baseDir, configFileName));
-	} else {
-		configFilePath = path.resolve(configFilePath);
-	}
-
-	const tsconfig = parseJsonWithComments(
-		fs.readFileSync(configFilePath).toString('utf8'),
-	);
-
-	const paths: Record<string, string[]> =
-		(tsconfig as any)?.compilerOptions?.paths ?? {};
+	const { paths } = compilerOptions;
 	for (const [alias, aliasPaths] of Object.entries(paths)) {
 		// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
 		const matchedPath = aliasPaths.find((dirPath) => {
@@ -98,18 +76,22 @@ const rule: Rule.RuleModule = {
 	},
 	create(context) {
 		const baseDir = findDirWithFile('package.json');
-
 		if (!baseDir) throw new Error("Can't find base dir");
+
+		const [{ ignoredPaths = [], configFilePath = null } = {}] = context.options as [
+			{ ignoredPaths: string[]; configFilePath?: string },
+		];
+
+		const compilerOptions = getCompilerConfigFromFile(
+			baseDir,
+			configFilePath ?? undefined,
+		);
+		if (!compilerOptions) throw new Error('Compiler options did not found');
 
 		return {
 			ImportDeclaration(node) {
-				const [{ ignoredPaths = [], configFilePath = null } = {}] =
-					context.options as [
-						{ ignoredPaths: string[]; configFilePath?: string },
-					];
-
-				const source = node.source.value;
-				if (typeof source === 'string' && source.startsWith('.')) {
+				const importPath = node.source.value;
+				if (typeof importPath === 'string' && importPath.startsWith('.')) {
 					const filename = context.getFilename();
 
 					const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
@@ -117,15 +99,15 @@ const rule: Rule.RuleModule = {
 					);
 
 					const absolutePath = path.normalize(
-						path.join(path.dirname(filename), source),
+						path.join(path.dirname(filename), importPath),
 					);
 
 					const replacement = findAlias(
+						compilerOptions,
 						baseDir,
 						absolutePath,
 						filename,
 						resolvedIgnoredPaths,
-						configFilePath,
 					);
 
 					if (!replacement) return;
