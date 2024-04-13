@@ -1,5 +1,6 @@
 'use strict';
 
+import { parse as parseJsonWithComments } from 'comment-json';
 import { Rule } from 'eslint';
 import fs from 'fs';
 import path from 'path';
@@ -34,11 +35,12 @@ function findAlias(
 			: null;
 
 	if (configFile) {
-		const tsconfig = JSON.parse(
+		const tsconfig = parseJsonWithComments(
 			fs.readFileSync(path.join(baseDir, configFile)).toString('utf8'),
 		);
 
-		const paths: Record<string, string[]> = tsconfig?.compilerOptions?.paths ?? {};
+		const paths: Record<string, string[]> =
+			(tsconfig as any)?.compilerOptions?.paths ?? {};
 		for (const [alias, aliasPaths] of Object.entries(paths)) {
 			// TODO: support full featured glob patterns instead of trivial cases like `@utils/*` and `src/utils/*`
 			const matchedPath = aliasPaths.find((dirPath) => {
