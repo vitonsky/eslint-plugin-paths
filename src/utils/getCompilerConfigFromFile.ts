@@ -9,24 +9,21 @@ export function getCompilerConfigFromFile(
 	configFilePath?: string,
 ): CompilerOptions | null {
 	if (!configFilePath) {
-		const isTsconfigExists = fs.existsSync(path.join(baseDir, 'tsconfig.json'));
-		const isJsconfigExists = fs.existsSync(path.join(baseDir, 'jsconfig.json'));
+		// Looking for a config file
+		for (const filename of ['tsconfig.json', 'jsconfig.json']) {
+			const resolvedPath = path.resolve(path.join(baseDir, filename));
+			const isFileExists = fs.existsSync(resolvedPath);
+			if (isFileExists) {
+				configFilePath = resolvedPath;
+				break;
+			}
+		}
 
-		const configFileName = isTsconfigExists
-			? 'tsconfig.json'
-			: isJsconfigExists
-				? 'jsconfig.json'
-				: null;
-
-		if (!configFileName) return null;
-
-		configFilePath = path.resolve(path.join(baseDir, configFileName));
-	} else {
-		configFilePath = path.resolve(configFilePath);
+		if (!configFilePath) return null;
 	}
 
 	const tsconfig = parseJsonWithComments(
-		fs.readFileSync(configFilePath).toString('utf8'),
+		fs.readFileSync(path.resolve(configFilePath)).toString('utf8'),
 	);
 
 	// TODO: validate options
