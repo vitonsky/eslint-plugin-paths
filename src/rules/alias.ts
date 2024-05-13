@@ -98,7 +98,7 @@ const rule: Rule.RuleModule = {
 				);
 				if (!isPathInImport) return;
 
-				const filename = context.getFilename();
+				const filename = context.filename;
 
 				const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
 					path.normalize(path.join(path.dirname(filename), ignoredPath)),
