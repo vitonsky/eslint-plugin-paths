@@ -87,49 +87,59 @@ const rule: Rule.RuleModule = {
 		);
 		if (!compilerOptions) throw new Error('Compiler options did not found');
 
+		const pathTrailers = ['.', '/', '~'];
 		return {
 			ImportDeclaration(node) {
 				const importPath = node.source.value;
-				if (typeof importPath === 'string' && importPath.startsWith('.')) {
-					const filename = context.getFilename();
+				if (typeof importPath !== 'string') return;
 
-					const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
-						path.normalize(path.join(path.dirname(filename), ignoredPath)),
-					);
+				const isPathInImport = pathTrailers.some((pathTrailer) =>
+					importPath.startsWith(pathTrailer),
+				);
+				if (!isPathInImport) return;
 
-					const absolutePath = path.normalize(
-						path.join(path.dirname(filename), importPath),
-					);
+				const filename = context.getFilename();
 
-					const replacement = findAlias(
-						compilerOptions,
-						baseDir,
-						absolutePath,
-						filename,
-						resolvedIgnoredPaths,
-					);
+				const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
+					path.normalize(path.join(path.dirname(filename), ignoredPath)),
+				);
 
-					if (!replacement) return;
+				const absolutePath = path.normalize(
+					path.resolve(
+						importPath.startsWith('.')
+							? path.join(path.dirname(filename), importPath)
+							: importPath,
+					),
+				);
 
-					context.report({
-						node,
-						message: `Update import to ${replacement}`,
-						fix(fixer) {
-							const acceptableQuoteSymbols = [`'`, `"`];
-							const originalStringQuote = node.source.raw?.slice(0, 1);
-							const quote =
-								originalStringQuote &&
-								acceptableQuoteSymbols.includes(originalStringQuote)
-									? originalStringQuote
-									: acceptableQuoteSymbols[0];
+				const replacement = findAlias(
+					compilerOptions,
+					baseDir,
+					absolutePath,
+					filename,
+					resolvedIgnoredPaths,
+				);
 
-							return fixer.replaceText(
-								node.source,
-								quote + replacement + quote,
-							);
-						},
-					});
-				}
+				if (!replacement) return;
+
+				context.report({
+					node,
+					message: `Update import to ${replacement}`,
+					fix(fixer) {
+						const acceptableQuoteSymbols = [`'`, `"`];
+						const originalStringQuote = node.source.raw?.slice(0, 1);
+						const quote =
+							originalStringQuote &&
+							acceptableQuoteSymbols.includes(originalStringQuote)
+								? originalStringQuote
+								: acceptableQuoteSymbols[0];
+
+						return fixer.replaceText(
+							node.source,
+							quote + replacement + quote,
+						);
+					},
+				});
 			},
 		};
 	},
