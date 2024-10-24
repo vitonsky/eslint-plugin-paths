@@ -72,6 +72,21 @@ function findAlias(
 const rule: Rule.RuleModule = {
 	meta: {
 		fixable: 'code',
+		schema: {
+			type: 'array',
+			minItems: 0,
+			maxItems: 1,
+			items: [
+				{
+					type: 'object',
+					properties: {
+						configFilePath: { type: 'string' },
+						ignoredPaths: { type: 'array', items: { type: 'string' } },
+					},
+					additionalProperties: false,
+				},
+			],
+		},
 	},
 	create(context) {
 		const baseDir = findDirWithFile('package.json');
