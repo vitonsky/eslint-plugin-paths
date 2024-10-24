@@ -58,6 +58,13 @@ tester.run('paths-alias', rule, {
 			output: `import z from '@foo/x/y/z';`,
 		},
 		{
+			name: 'relative named import from alias must be fixed',
+			filename: path.resolve('./src/nested/index.ts'),
+			code: `import { x } from '../qux/x/y/z';`,
+			errors: ['Update import to @qux/x/y/z'],
+			output: `import { x } from '@qux/x/y/z';`,
+		},
+		{
 			name: 'absolute import from alias must be fixed',
 			filename: path.resolve('./src/index.ts'),
 			code: `import z from '${path.resolve('./src/foo/x/y/z')}';`,

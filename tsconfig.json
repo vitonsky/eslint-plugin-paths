@@ -33,7 +33,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"@foo/*": ["src/foo/*"],
-			"@bar/*": ["src/bar/*"]
+			"@bar/*": ["src/bar/*"],
+			"@qux/*": ["./src/qux/*"]
 		}
 	},
 	"include": ["src/*.ts", "src/*.tsx", "src/**/*.ts", "src/**/*.tsx"]
