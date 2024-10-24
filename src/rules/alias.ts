@@ -49,7 +49,7 @@ function findAlias(
 		// Remove basedir and slash in start
 		const slicedImportPath = importPath
 			.slice(baseDir.length + 1)
-			.slice(path.dirname(matchedPath.replace(/^\.\//, '')).length + 1);
+			.slice(path.dirname(path.normalize(matchedPath)).length + 1);
 		// Remove asterisk from end of alias
 		const replacedPathSegments = path
 			.join(path.dirname(alias), slicedImportPath)
