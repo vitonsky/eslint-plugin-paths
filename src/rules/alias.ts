@@ -68,7 +68,7 @@ function findAlias(
 
 // TODO: implement option to force relative path instead of alias (for remove alias case)
 // TODO: add tests
-const rule: Rule.RuleModule = {
+const rule = {
 	meta: {
 		fixable: 'code',
 		schema: {
@@ -157,6 +157,6 @@ const rule: Rule.RuleModule = {
 			},
 		};
 	},
-};
+} satisfies Rule.RuleModule;
 
 export default rule;
