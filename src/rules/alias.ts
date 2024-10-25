@@ -49,8 +49,7 @@ function findAlias(
 		// Remove basedir and slash in start
 		const slicedImportPath = importPath
 			.slice(baseDir.length + 1)
-			.slice(path.dirname(matchedPath).length + 1);
-
+			.slice(path.dirname(path.normalize(matchedPath)).length + 1);
 		// Remove asterisk from end of alias
 		const replacedPathSegments = path
 			.join(path.dirname(alias), slicedImportPath)
@@ -72,6 +71,21 @@ function findAlias(
 const rule: Rule.RuleModule = {
 	meta: {
 		fixable: 'code',
+		schema: {
+			type: 'array',
+			minItems: 0,
+			maxItems: 1,
+			items: [
+				{
+					type: 'object',
+					properties: {
+						configFilePath: { type: 'string' },
+						ignoredPaths: { type: 'array', items: { type: 'string' } },
+					},
+					additionalProperties: false,
+				},
+			],
+		},
 	},
 	create(context) {
 		const baseDir = findDirWithFile('package.json');
