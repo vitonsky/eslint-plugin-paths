@@ -1,0 +1,4 @@
+# 1.1.0
+
+- Added declaration files to build #147
+- Added eslint schema for rules #145 by @samtsai

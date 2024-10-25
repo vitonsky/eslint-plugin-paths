@@ -18,6 +18,10 @@ export default [
 						dest: 'dist',
 					},
 					{
+						src: 'CHANGELOG',
+						dest: 'dist',
+					},
+					{
 						src: 'README.md',
 						dest: 'dist',
 					},
