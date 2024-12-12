@@ -112,7 +112,9 @@ const rule = {
 				);
 				if (!isPathInImport) return;
 
-				const filename = context.filename;
+				const fullFilePath = context.getFilename();
+                const cwd = context.getCwd();
+                const filename = path.relative(cwd, fullFilePath);
 
 				const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
 					path.normalize(path.join(path.dirname(filename), ignoredPath)),
