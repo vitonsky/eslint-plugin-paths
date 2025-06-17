@@ -2,6 +2,8 @@ A plugin for ESLint, to force use paths aliases according to `paths` option conf
 
 Zero config, plug and play design.
 
+[![](https://primebits.org/badges/built-by.svg)](https://primebits.org)
+
 # About
 
 Current rule supports auto fix with `eslint --fix`, so you may automate paths correction.
