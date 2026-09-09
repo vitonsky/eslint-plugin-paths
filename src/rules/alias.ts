@@ -45,22 +45,25 @@ function findAlias(
 
 		if (!matchedPath) continue;
 
-		// Split import path
-		// Remove basedir and slash in start
-		const slicedImportPath = importPath
-			.slice(baseDir.length + 1)
-			.slice(path.dirname(path.normalize(matchedPath)).length + 1);
-		// Remove asterisk from end of alias
-		const replacedPathSegments = path
-			.join(path.dirname(alias), slicedImportPath)
-			.split('/');
+		// FIXED: Replace fragile string slicing with structural path resolution
+		const aliasRoot = path.dirname(matchedPath);
+		const importDir = path.dirname(importPath);
+		const importBase = path.basename(importPath);
 
-		// Add index in path
-		return (
-			replacedPathSegments.length === 1
-				? [...replacedPathSegments, 'index']
-				: replacedPathSegments
-		).join('/');
+		const relativeDiff = path.relative(aliasRoot, importDir);
+		const parts = [alias, relativeDiff, importBase].join('/').split('/');
+		const normalizedParts: string[] = [];
+
+		for (const part of parts) {
+			if (part === '..') {
+				normalizedParts.pop();
+			} else if (part !== '.' && part !== '') {
+				normalizedParts.push(part);
+			}
+		}
+
+		const finalPath = normalizedParts.join('/');
+		return finalPath === alias ? `${finalPath}/index` : finalPath;
 	}
 
 	return null;
@@ -140,7 +143,7 @@ const rule = {
 					node,
 					message: `Update import to ${replacement}`,
 					fix(fixer) {
-						const acceptableQuoteSymbols = [`'`, `"`];
+						const acceptableQuoteSymbols = [`'`, `"`, '`'];
 						const originalStringQuote = node.source.raw?.slice(0, 1);
 						const quote =
 							originalStringQuote &&
