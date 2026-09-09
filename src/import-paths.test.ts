@@ -64,5 +64,12 @@ tester.run('import-paths', rule, {
 			errors: ['Update import to @bar/x/y/z'],
 			output: `import z from '@bar/x/y/z';`,
 		},
+		{
+			name: 'absolute-style import from alias root without leading slash',
+			filename: path.resolve('./src/index.ts'),
+			code: `import z from "src/__tests__/utils/file";`,
+			errors: ['Update import to @tests/utils/file'],
+			output: `import z from '@tests/utils/file';`,
+		},
 	],
 });

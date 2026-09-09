@@ -94,7 +94,8 @@ const rule: Rule.RuleModule = {
 				];
 
 				const source = node.source.value;
-				if (typeof source === 'string' && source.startsWith('.')) {
+				// Removed .startsWith('.') check to allow bare absolute paths like 'src/...' to be processed
+				if (typeof source === 'string') {
 					const filename = context.getFilename();
 
 					const resolvedIgnoredPaths = ignoredPaths.map((ignoredPath) =>
