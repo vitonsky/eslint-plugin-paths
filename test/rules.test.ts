@@ -11,7 +11,7 @@ const tester = new RuleTester({
 	},
 });
 
-tester.run('alias #169 Bug Reproduction', rule, {
+tester.run('alias #169 Deepink Regression Fix', rule, {
 	valid: [
 		{
 			name: 'relative import from not an alias directory are allowed',
@@ -21,11 +21,18 @@ tester.run('alias #169 Bug Reproduction', rule, {
 	],
 	invalid: [
 		{
-			name: 'absolute-style import from alias root without leading slash',
+			name: 'bare absolute-style import from alias root without leading slash (Issue #169)',
 			filename: path.resolve('./src/index.ts'),
 			code: `import z from "src/__tests__/utils/file";`,
 			errors: ['Update import to @tests/utils/file'],
 			output: `import z from '@tests/utils/file';`,
+		},
+		{
+			name: 'deep nested relative traversal should resolve to alias',
+			filename: path.resolve('./src/core/handler/index.ts'),
+			code: `import { sharedDependency } from "../../../../shared/dependency";`,
+			errors: ['Update import to @shared/dependency'],
+			output: `import { sharedDependency } from '@shared/dependency';`,
 		},
 	],
 });
