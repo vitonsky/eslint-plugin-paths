@@ -101,16 +101,12 @@ const rule = {
 		);
 		if (!compilerOptions) throw new Error('Compiler options did not found');
 
-		const pathTrailers = ['.', '/', '~'];
 		return {
 			ImportDeclaration(node) {
 				const importPath = node.source.value;
 				if (typeof importPath !== 'string') return;
 
-				const isPathInImport = pathTrailers.some((pathTrailer) =>
-					importPath.startsWith(pathTrailer),
-				);
-				if (!isPathInImport) return;
+				// Removed the prefix restriction that blocked absolute paths like 'src/...'
 
 				const filename = context.filename;
 
